@@ -4,7 +4,8 @@ clear;clc;
 computeConvexHull = 0;
 
 % set path to image directory
-imDir = '.\0bennu_sim_IR\bennu_automated_images\';
+% imDir = '.\0bennu_sim_IR\bennu_automated_images\';% bennu
+imDir = '.\0itokawa_sim_IR\itokawa_automated_images\';% itokawa
 
 % compute number of images in directory
 numFiles = length(dir([imDir,'render*']));
@@ -36,8 +37,7 @@ for idxIm = 1:numFiles
     sgtitle(['render',num2str(idxIm)])
     
     % find silhoutte
-    [r,c] = find(imgrad~=0);
-    
+    [c,r] = find(imgrad);
     % optional convex hull computation
     if computeConvexHull
         DT = delaunayTriangulation(r,c);
@@ -64,15 +64,16 @@ for idxIm = 1:numFiles
     % plot silhoutte (and optionally the convex hull)
     ax3 = subplot(133);
     cla
-    plot(c,r,'.')
+    plot(r,c,'.')
     
-    % optionally pllot convex hull
+    % optionally plot convex hull
     if computeConvexHull
         hold on
         plot(DT.Points(C,2),DT.Points(C,1),'r+-','MarkerSize',10)
     end
     axis square
     axis([0,1024,0,1024])
+    set(ax3,'XAxisLocation','top','YAxisLocation','left','ydir','reverse');
     drawnow
     
     % save data
