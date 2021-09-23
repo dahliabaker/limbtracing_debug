@@ -30,14 +30,32 @@ for idxIm = 1:numFiles
     % remove random background noise
     im(im<uint8(2)) = uint8(0);
     
-    % compute image gradient
-    imgrad = imgradient(im*1000);
+    % compute image silhouette
+    imthresh = im*1000;
+    
+    imSilhoutte = zeros(size(im),'uint8');
+    for ii = 1:size(im,1)
+        if any(im(ii,:)>0)
+            c = find(im(ii,:)>0,1,'first');
+            imSilhoutte(ii,c) = uint8(1000);
+            c = find(im(ii,:)>0,1,'last');
+            imSilhoutte(ii,c) = uint8(1000);
+        end
+    end
+    for ii = 1:size(im,2)
+        if any(im(:,ii)>0)
+            c = find(im(:,ii)>0,1,'first');
+            imSilhoutte(c,ii) = uint8(1000);
+            c = find(im(:,ii)>0,1,'last');
+            imSilhoutte(c,ii) = uint8(1000);
+        end
+    end
     
     % set figure title
     sgtitle(['render',num2str(idxIm)])
     
     % find silhoutte
-    [c,r] = find(imgrad);
+    [c,r] = find(imSilhoutte);
     % optional convex hull computation
     if computeConvexHull
         DT = delaunayTriangulation(r,c);
@@ -57,7 +75,7 @@ for idxIm = 1:numFiles
     % plot image gradient
     ax2 = subplot(132);
     cla
-    imshow(imgrad)
+    imshow(imSilhoutte)
     colormap(gray)
     axis square
     
