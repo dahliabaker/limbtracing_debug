@@ -33,20 +33,20 @@ for idxIm = 1:numFiles
     % compute image silhouette
     imthresh = im*1000;
     
-    imSilhoutte = zeros(size(im),'uint8');
-    for ii = 1:size(im,1)
-        if any(im(ii,:)>0)
-            c = find(im(ii,:)>0,1,'first');
+    imSilhoutte = zeros(size(imthresh),'uint8');
+    for ii = 1:size(imthresh,1)
+        if any(imthresh(ii,:)>0)
+            c = find(imthresh(ii,:)>0,1,'first');
             imSilhoutte(ii,c) = uint8(1000);
-            c = find(im(ii,:)>0,1,'last');
+            c = find(imthresh(ii,:)>0,1,'last');
             imSilhoutte(ii,c) = uint8(1000);
         end
     end
-    for ii = 1:size(im,2)
-        if any(im(:,ii)>0)
-            c = find(im(:,ii)>0,1,'first');
+    for ii = 1:size(imthresh,2)
+        if any(imthresh(:,ii)>0)
+            c = find(imthresh(:,ii)>0,1,'first');
             imSilhoutte(c,ii) = uint8(1000);
-            c = find(im(:,ii)>0,1,'last');
+            c = find(imthresh(:,ii)>0,1,'last');
             imSilhoutte(c,ii) = uint8(1000);
         end
     end
