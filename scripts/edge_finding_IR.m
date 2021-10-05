@@ -1,27 +1,18 @@
-function [trim_u, trim_v,E_u,E_v,mid_pt_u,mid_pt_v] = edge_finding_canny(asteroid, angdiff)
+%edge finding for IR
 
-    %Find edge points
-    [ast_edge] = edge(asteroid,'canny',.5,5); 
-    %need to flip E_v to match camera orientation (flip vhat 180degrees
-    %about uhat axis)
-    
-    %ast_edge = flip(ast_edge,1);
-    E_idx = find(ast_edge);
-    
-    %[E_u,E_v] = ind2sub( size(asteroid), E_idx);
-    [E_v,E_u]  = ind2sub( size(asteroid), E_idx ); 
+%9/24/21
+
+
+function [trim_u, trim_v,E_u,E_v,mid_pt_u,mid_pt_v] = edge_finding_IR(iredge_x,iredge_y,angdiff)
+
+%[E_v,E_u]  = ind2sub( size(asteroid), E_idx ); 
    
-    %calculate middle point (average)
-    
-%     k = convhull(E_u,E_v);
-%     
-%     E_u = E_u(k);
-%     E_v = E_v(k);
+    E_u = iredge_x;
+    E_v = iredge_y;
 
     mid_pt_u = mean(E_u);
     mid_pt_v = mean(E_v);
-   
-    
+
     %put all points in frame centered on middle point as origin
     for i = 1:length(E_u)
         centered_u(i) = E_u(i) - mid_pt_u;
@@ -39,7 +30,8 @@ function [trim_u, trim_v,E_u,E_v,mid_pt_u,mid_pt_v] = edge_finding_canny(asteroi
             angle(ii) = 180+diff;
         end
     end
-    points = [centered_u; centered_v];
+
+        points = [centered_u; centered_v];
     B = angle;
     angle_sorted = zeros(size(angle));
     points_sorted = zeros(size(points));
@@ -68,6 +60,5 @@ function [trim_u, trim_v,E_u,E_v,mid_pt_u,mid_pt_v] = edge_finding_canny(asteroi
         trim_u(i) = points_saved(1,i);
         trim_v(i) = points_saved(2,i);
     end
-    
     
 end

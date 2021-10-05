@@ -24,7 +24,7 @@
 %
 %
 
-function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_list, z_list, fov_angle,CB,sun_pos,phase,limb,ext)
+function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_list, z_list, fov_angle,CB,sun_pos,phase,limb,ext,IR,IRdat,density)
   
     j = 1;
     
@@ -56,8 +56,8 @@ function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_list
         
 
         
-        [trim_u, trim_v,E_u,E_v,mid_pt_u,mid_pt_v] = edge_finding_canny(asteroid, 10);
-
+        [trim_u, trim_v,E_u,E_v,mid_pt_u,mid_pt_v] = edge_finding_canny(asteroid, density);
+        
         %check sign of y comp of SunB
         cam_pos = [0,0,z_list(j)];
         %sunb = cam_pos - (CB(:,:,j)'*sun_pos(j,:)')';
@@ -71,7 +71,7 @@ function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_list
         %plot them one over another
 
         if j ==1
-            %ast_flip = flip(asteroid,1);
+            ast_flip = flip(asteroid,1);
             figure()
             imshow(asteroid)
             hold on
@@ -79,10 +79,10 @@ function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_list
             scatter(new_trim_u,new_trim_v,'filled','b')
             scatter(new_term_u,new_term_v,'filled','r')
             %plot lines from sun direction
-            
-            legend({'limb','terminator'},'FontSize',12)
-            xlabel('X (pixels)','FontSize',12)
-            ylabel('Y (pixels)','FontSize',12)
+            %asteroid = imcrop(asteroid);
+            legend({'limb','terminator'},'FontSize',24)
+            xlabel('X (pixels)','FontSize',16)
+            ylabel('Y (pixels)','FontSize',16)
             hold off
             
 %             figure()
@@ -122,13 +122,53 @@ function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_list
 %         limb_starts{j} = new_rays_bc(:,4:6);
 %         limb_ends{j}  = new_rays_bc(:,1:3);
 
-        
         disp('image number processed: ')
         disp(j)
         
         
         j = j+1;
-     end
-    
+    end
+    k = 73;
+    while k <=(length(IRdat)+72)
+        l = k-72;
+        [trim_u, trim_v,E_u,E_v,mid_pt_u,mid_pt_v] = edge_finding_IR(IRdat{l,1},IRdat{l,2}, 10);
+        
+        %check sign of y comp of SunB
+        cam_pos = [0,0,z_list(l)];
+        %sunb = cam_pos - (CB(:,:,j)'*sun_pos(j,:)')';
+        sunb = cam_pos - (CB(:,:,l)'*sun_pos(l,:)')';
+        if sunb(2) <= 0
+            dir = 1;
+        else
+            dir = -1;
+        end
+        [edge_points{k}, edge_points_t{k}, edge_rays{k}, edge_rays_t{k}, new_trim_u,new_trim_v, new_term_u,new_term_v] = edge_to_3d_orex(z_list(l), fov_angle, trim_u, trim_v,sunb,mid_pt_u,mid_pt_v,dir,0,limb,ext);
+        %plot them one over another
+        
+        T = CB(:,:,l);
+   
+        sun_v3 = sun_pos(l,:)+[0,0,-100];%in camera frame
+        rhat = [0,0,-1];%camera pointing vector in camera frame
+        theta_yz = asind(norm(cross(sun_v3,rhat))/(norm(sun_v3)*norm(rhat))); %angle between rhat and sun vector in y-z plane
+        %check for which side of camera sun is on
+        if sun_v3(2) >= 0
+            ang = -theta_yz;
+        else 
+            ang = theta_yz;
+        end
+        rot1 = [1 0 0; 0 cosd(ang) sind(ang); 0 -sind(ang) cosd(ang)];%ang rotation about first axis
+
+        theta_xz = 180-atan2d(sun_v3(1),sun_v3(3));
+        rot2 = [cosd(theta_xz) 0 sind(theta_xz); 0 1 0; -sind(theta_xz) 0 cosd(theta_xz)]; 
+        
+        rot = rot2*rot1;
+        [edge_points_bc{k}, new_rays_bc] = CFtoBF_orex(T, rot, edge_points{k}, edge_points_t{k}, edge_rays{k},edge_rays_t{k});
+
+
+        limb_starts{k} = new_rays_bc(:,1:3);
+        limb_ends{k}  = new_rays_bc(:,4:6);
+
+        k = k+1;
+    end
 
 end

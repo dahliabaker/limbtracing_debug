@@ -45,14 +45,14 @@ for i = 1:length(dist_u)
     sun = [-sun_v(1),sun_v(2)];
     dot_p = dot(vec,sun);
     
-    if (dot_p<=0)
+    if (dot_p>=0)
         new_dist_u(j) = dist_u(i);
         new_dist_v(j) = dist_v(i);
         
         new_trim_u(j) = trim_u(i)+mid_pt_u;
         new_trim_v(j) = (1*trim_v(i))+mid_pt_v;
         j = j+1;
-    elseif dot_p > 0 && limb == 1 
+    elseif dot_p < 0 && limb == 1 
         term_dist_u(k) = dist_u(i);
         term_dist_v(k) = dist_v(i);
         
