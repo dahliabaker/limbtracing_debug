@@ -1,0 +1,15 @@
+Image_scene_info.txt file format:
+
+element 1: image index
+element 2-4: position of body relative to camera in camera frame [km]
+element 5-13: rotation matrix from body frame to camera frame (first 3 values are the first row of the transformation matrix; every three is a row)
+element 14-16: sun postion with respect to camera in camera frame [km]
+element 17: calculated phase angle [degrees]
+element 18-19: sun to object projected onto the image plane unit vector (you probably do not need)
+
+General camera specs:
+focal length: 630 mm
+pixel pitch: 8.5 microns
+sensor dimensions: 1024 x 1024
+
+NOTE: I have to check with Andrew to make sure the camera specs are spot on.

@@ -24,7 +24,7 @@
 %
 %
 
-function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_list, z_list, fov_angle,CB,sun_pos,phase,limb,ext,IR,IRdat,density)
+function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_list, z_list, fov_angle,CB,sun_pos,phase,limb,ext,IR,IRdat,density,body)
   
     j = 1;
     
@@ -32,6 +32,10 @@ function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_list
 
         asteroid = imread(img_list(j));
         asteroid = rgb2gray(asteroid); %toggle on or off based on input
+        asteroid(asteroid<uint8(2)) = uint8(0);
+        asteroid = asteroid*1000;
+        
+        
         %figure for paper
 %         asteroid = imadjust(asteroid,[0 1]);
 %         asteroid = imgaussfilt(asteroid,5);
@@ -53,26 +57,24 @@ function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_list
 %         
 %         disp('done')
         %imwrite(asteroid,'blur_'+string(j)+'.png')
-        
-
-        
-        [trim_u, trim_v,E_u,E_v,mid_pt_u,mid_pt_v] = edge_finding_canny(asteroid, density);
+          
+        [trim_u, trim_v,E_u,E_v,mid_pt_u,mid_pt_v] = edge_finding_canny(asteroid, density,limb);
         
         %check sign of y comp of SunB
         cam_pos = [0,0,z_list(j)];
         %sunb = cam_pos - (CB(:,:,j)'*sun_pos(j,:)')';
         sunb = cam_pos - (CB(:,:,j)'*sun_pos(j,:)')';
-        if sunb(2) <= 0
+        if sunb(2) >= 0
             dir = 1;
         else
             dir = -1;
         end
-        [edge_points{j}, edge_points_t{j}, edge_rays{j}, edge_rays_t{j}, new_trim_u,new_trim_v, new_term_u,new_term_v] = edge_to_3d_orex(z_list(j), fov_angle, trim_u, trim_v,sunb,mid_pt_u,mid_pt_v,dir,phase,limb,ext);
+        [edge_points{j}, edge_points_t{j}, edge_rays{j}, edge_rays_t{j}, new_trim_u,new_trim_v, new_term_u,new_term_v] = edge_to_3d_orex(z_list(j), fov_angle, trim_u, trim_v,sunb,mid_pt_u,mid_pt_v,dir,phase(j),limb,ext);
         %plot them one over another
 
-        if j ==1
-            ast_flip = flip(asteroid,1);
-            figure()
+        if j >0
+            %ast_flip = flip(asteroid,1);
+            figure(1)
             imshow(asteroid)
             hold on
             grid on
@@ -109,12 +111,14 @@ function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_list
             ang = theta_yz;
         end
         rot1 = [1 0 0; 0 cosd(ang) sind(ang); 0 -sind(ang) cosd(ang)];%ang rotation about first axis
-
+        
         theta_xz = 180-atan2d(sun_v3(1),sun_v3(3));
+        
+        
         rot2 = [cosd(theta_xz) 0 sind(theta_xz); 0 1 0; -sind(theta_xz) 0 cosd(theta_xz)]; 
         
         rot = rot2*rot1;
-        [edge_points_bc{j}, new_rays_bc] = CFtoBF_orex(T, rot, edge_points{j}, edge_points_t{j}, edge_rays{j},edge_rays_t{j});
+        [edge_points_bc{j}, new_rays_bc] = CFtoBF_orex(T', rot, edge_points{j}, edge_points_t{j}, edge_rays{j},edge_rays_t{j});
 
 
         limb_starts{j} = new_rays_bc(:,1:3);

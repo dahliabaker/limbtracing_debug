@@ -50,8 +50,8 @@ for ii = 1:length(longitudeSet)-1
         
         if jj < numLimbPatches
             limb1 = [limbRayStarts{ii}(jj,:); limbRayStarts{ii}(jj+1,:); limbRayEnds{ii}(jj,:); limbRayEnds{ii}(jj+1,:)]'; 
-        elseif limb_only == 0
-            limb1 = [limbRayStarts{ii}(jj,:); limbRayStarts{ii}(1,:); limbRayEnds{ii}(jj,:); limbRayEnds{ii}(1,:)]'; 
+%         elseif limb_only == 0
+%             limb1 = [limbRayStarts{ii}(jj,:); limbRayStarts{ii}(1,:); limbRayEnds{ii}(jj,:); limbRayEnds{ii}(1,:)]'; 
         end
         
         for mm = ii+1:length(longitudeSet)
@@ -68,8 +68,8 @@ for ii = 1:length(longitudeSet)-1
                 
                 if nn < numLimbPatches
                     limb2 = [limbRayStarts{mm}(nn,:); limbRayStarts{mm}(nn+1,:); limbRayEnds{mm}(nn,:); limbRayEnds{mm}(nn+1,:)]';
-                elseif limb_only == 0
-                    limb2 = [limbRayStarts{mm}(nn,:); limbRayStarts{mm}(1,:); limbRayEnds{mm}(nn,:); limbRayEnds{mm}(1,:)]';
+%                 elseif limb_only == 0
+%                     limb2 = [limbRayStarts{mm}(nn,:); limbRayStarts{mm}(1,:); limbRayEnds{mm}(nn,:); limbRayEnds{mm}(1,:)]';
                 end
                 
                 [shapeEndPnts{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, shape_tInt{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, shape_uhat{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, shape_x0{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, nhat1, nhat2] = find_shape_pts_from_limb_segments(limb1, limb2, numEndPnts);

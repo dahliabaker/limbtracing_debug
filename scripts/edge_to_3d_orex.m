@@ -41,18 +41,18 @@ sun_v = [-sun_v(3)+z,-sun_v(2)];
 j=1;
 k=1;
 for i = 1:length(dist_u)
-    vec = [dist_u(i),-dir*dist_v(i)];%+dist_offset];
-    sun = [-sun_v(1),sun_v(2)];
+    vec = [-dist_u(i),-dir*dist_v(i)];%+dist_offset];
+    sun = [sun_v(1),sun_v(2)];
     dot_p = dot(vec,sun);
-    
-    if (dot_p>=0)
+    %disp(dot_p)
+    if (dot_p>=0) || phase == 0
         new_dist_u(j) = dist_u(i);
         new_dist_v(j) = dist_v(i);
         
         new_trim_u(j) = trim_u(i)+mid_pt_u;
         new_trim_v(j) = (1*trim_v(i))+mid_pt_v;
         j = j+1;
-    elseif dot_p < 0 && limb == 1 
+    elseif dot_p < 0 && limb == 1 && phase > 0
         term_dist_u(k) = dist_u(i);
         term_dist_v(k) = dist_v(i);
         
@@ -65,17 +65,32 @@ end
 half_len = ext;
 
 if j > 1
-    dist_u = new_dist_u';
-    dist_v = new_dist_v';
-    %Make rays for limb
-    len = length(dist_u(:,1));
-    dist_w(1:len,1) = z;
+    if limb == 0 && phase >0
+        max = 36;
+    elseif limb == 0 && phase ==0
+        max = 72;
+    elseif limb == 1
+        max = 36;
+    end
+    %make sample indices
+    samp = 1:(length(new_dist_u)/max):length(new_dist_u);
+    samp = round(samp);
+    for i = 1:max
+        new_u(i) = new_dist_u(samp(i));
+        new_v(i) = new_dist_v(samp(i));
+    end
     
-    dist_u(len+1,1) = mean_u;
-    dist_v(len+1,1) = mean_v;
-    dist_w(len+1,1) = z;
+    new_u = new_u';
+    new_v = new_v';
+    %Make rays for limb
+    len = length(new_u(:,1));
+    new_w(1:len,1) = z;
+    
+    new_u(len+1,1) = mean_u;
+    new_v(len+1,1) = mean_v;
+    new_w(len+1,1) = z;
 
-    edge_points = [dist_u, -dist_v, dist_w];
+    edge_points = [new_u, -new_v, new_w];
 
     for i = 1:len
         edge_points_woc(i,:) = edge_points(i,:) - edge_points(len+1,:);
@@ -94,17 +109,27 @@ if j > 1
 end
 
 if k > 1
-    term_u = term_dist_u';
-    term_v = term_dist_v';
+    if limb == 1
+        max = 36;
+    end
+    %make sample indices
+    samp = 1:(length(term_dist_u)/max):length(term_dist_u);
+    samp = round(samp);
+    for i = 1:max
+        term_u_2(i) = term_dist_u(samp(i));
+        term_v_2(i) = term_dist_v(samp(i));
+    end
+    term_u_2 = term_u_2';
+    term_v_2 = term_v_2';
     
-    len_t = length(term_u(:,1));
-    term_w(1:len_t,1) = z;
+    len_t = length(term_u_2(:,1));
+    term_w_2(1:len_t,1) = z;
 
-    term_u(len_t+1,1) = mean_u;
-    term_v(len_t+1,1) = mean_v;
-    term_w(len_t+1,1) = z;
+    term_u_2(len_t+1,1) = mean_u;
+    term_v_2(len_t+1,1) = mean_v;
+    term_w_2(len_t+1,1) = z;
     
-    edge_points_t = [term_u, -term_v, term_w];
+    edge_points_t = [term_u_2, -term_v_2, term_w_2];
     
     for i = 1:len_t
         edge_points_woc_t(i,:) = edge_points_t(i,:) - edge_points_t(len_t+1,:);
