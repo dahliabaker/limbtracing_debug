@@ -25,7 +25,7 @@ offset_v = dir*(3.2966e-7*(phase^4) - 1.3776e-4*(phase^3) + 0.0187*(phase^2) -0.
 horz_dist = z*tand(fov_angle);
 vert_dist = z*tand(fov_angle);
 
-dist_offset = (offset_v*(vert_dist/1024));
+dist_offset = (offset_v*(vert_dist/1024));% not used!
 %convert pixel numbers to distances in km from origin
 dist_u = (trim_u.*(horz_dist/1024));
 dist_v = (trim_v.*(vert_dist/1024));
@@ -43,7 +43,7 @@ k=1;
 for i = 1:length(dist_u)
     vec = [-dist_u(i),-dir*dist_v(i)];%+dist_offset];
     sun = [sun_v(1),sun_v(2)];
-    dot_p = dot(vec,sun);
+    dot_p = -dot(vec,sun);
     %disp(dot_p)
     if (dot_p>=0) || phase == 0
         new_dist_u(j) = dist_u(i);
@@ -110,7 +110,7 @@ end
 
 if k > 1
     if limb == 1
-        max = 36;
+        max = 72;
     end
     %make sample indices
     samp = 1:(length(term_dist_u)/max):length(term_dist_u);

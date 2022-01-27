@@ -49,16 +49,16 @@ function [trim_u, trim_v,E_u,E_v,mid_pt_u,mid_pt_v] = edge_finding_IR(iredge_x,i
     
     j = 1;
     ang = 0;
-    for i = 1:length(centered_u)
-        if (angle_sorted(i) > ang)
-            points_saved(1:2,j) = points_sorted(1:2,i);
-            j = j+1;
-            ang = ang+angdiff;
-        end
-    end
-    for i = 1:length(points_saved(1,:))
-        trim_u(i) = points_saved(1,i);
-        trim_v(i) = points_saved(2,i);
+%     for i = 1:length(centered_u)
+%         if (angle_sorted(i) > ang)
+%             points_saved(1:2,j) = points_sorted(1:2,i);
+%             j = j+1;
+%             ang = ang+angdiff;
+%         end
+%     end
+    for i = 1:length(points_sorted(1,:))
+        trim_u(i) = points_sorted(1,i);
+        trim_v(i) = points_sorted(2,i);
     end
     
 end
