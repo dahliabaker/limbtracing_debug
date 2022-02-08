@@ -5,10 +5,10 @@ computeConvexHull = 0;
 
 % set path to image directory
 % imDir = '.\0bennu_sim_IR\bennu_automated_images\';% bennu
-imDir = '.\0itokawa_sim_IR\itokawa_automated_images\';% itokawa
+imDir = './0itokawa_sim_IR/itokawa_automated_images/';% itokawa
 
 % compute number of images in directory
-numFiles = length(dir([imDir,'render*']));
+numFiles = 72%length(dir([imDir,'render*']));
 
 % set figure size
 h = figure(10);

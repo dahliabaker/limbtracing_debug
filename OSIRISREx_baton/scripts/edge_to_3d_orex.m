@@ -104,7 +104,7 @@ if j > 1
     new_v(len+1,1) = mean_v;
     new_w(len+1,1) = z;
 
-    edge_points = 50.*[new_u, -new_v, new_w];
+    edge_points = [new_u, -new_v, new_w];
 
     for i = 1:len
         edge_points_woc(i,:) = edge_points(i,:) - edge_points(len+1,:);
@@ -147,7 +147,7 @@ if k > 1
     term_v_2(len_t+1,1) = mean_v;
     term_w_2(len_t+1,1) = z;
     
-    edge_points_t = 50.*[term_u_2, -term_v_2, term_w_2];
+    edge_points_t = [term_u_2, -term_v_2, term_w_2];
     
     for i = 1:len_t
         edge_points_woc_t(i,:) = edge_points_t(i,:) - edge_points_t(len_t+1,:);

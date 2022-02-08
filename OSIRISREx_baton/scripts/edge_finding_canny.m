@@ -93,5 +93,20 @@ function [trim_u, trim_v,E_u,E_v,mid_pt_u,mid_pt_v] = edge_finding_canny(asteroi
         trim_v(i) = points_sorted(2,i);
     end
     
-    
+    cmap = jet(length(points_sorted(1,:)));
+
+% for i = 1:length(points_sorted(1,:))
+%     figure(1)
+%     hold on
+%     plot(points_sorted(1,i),points_sorted(2,i),'x','MarkerSize',20,'Color',cmap(i,:))
+%     drawnow;
+%     disp(i);
+%     
+% end
+%     
 end
+
+%%
+
+
+    

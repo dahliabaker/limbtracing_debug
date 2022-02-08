@@ -6,7 +6,6 @@ coord_BF_t = [];
 
 BC = CB';
 
-
 %fudge factor to eliminate silhouette overlap
 %gonna push terminator by like 0.001 degrees
 

@@ -50,8 +50,8 @@ for ii = 1:length(longitudeSet)-1
         
         if jj < numLimbPatches
             limb1 = [limbRayStarts{ii}(jj,:); limbRayStarts{ii}(jj+1,:); limbRayEnds{ii}(jj,:); limbRayEnds{ii}(jj+1,:)]'; 
-%         elseif limb_only == 0
-%             limb1 = [limbRayStarts{ii}(jj,:); limbRayStarts{ii}(1,:); limbRayEnds{ii}(jj,:); limbRayEnds{ii}(1,:)]'; 
+        elseif limb_only == 0
+            limb1 = [limbRayStarts{ii}(jj,:); limbRayStarts{ii}(1,:); limbRayEnds{ii}(jj,:); limbRayEnds{ii}(1,:)]'; 
         end
         
         for mm = ii+1:length(longitudeSet)
@@ -134,7 +134,9 @@ rayLengths = [];
 shapePnts = zeros(0,3);
 shapePntNhats = zeros(0,3);
 for ii = 1:length(longitudeSet)
-    
+    if ii == 36
+        disp('stop')
+    end
     for jj = 1:numLimbPatches
         
 %         if (ii==2 && jj == 23) || ii==4 || ii==10 %ii == 12 && (jj == 5) % 11, 5 itokawa
@@ -245,6 +247,32 @@ for ii = 1:length(longitudeSet)
             pntPcnts = linspace(keepSegments(kk,1),keepSegments(kk,2),numPnts);
             pnts = limbRayStarts{ii}(jj,:)' + start2end.*pntPcnts;
             rayLengths = [rayLengths; norm(pnts(:,end)-pnts(:,1))];
+            
+             %if norm(pnts(:,end)-pnts(:,1)) < (mean(rayLengths)+stdnum*std(rayLengths))
+
+                
+%                 nh1 = shape_nhat{rayInd}(:,1);
+%                 if jj == 1
+%                     nh2 = shape_nhat{ii*numLimbPatches}(:,1);
+%                 else
+%                     nh2 = shape_nhat{rayInd-1}(:,1);
+%                 end
+%                 nhat = (nh1'+nh2')./2;
+%                 nhat = nhat./norm(nhat);
+%                 vec_diff = nhat-spin_pole;
+% %                 shapePnts = [shapePnts; pnts'];
+% %                 shapePntNhats = [shapePntNhats; repmat(nhat,numPnts,1)];
+% %                 if vec_diff(3) < 1.1e-2 || vec_diff(3) > (2-1.1e-2)
+% %                     skip this ray, too close to spin pole
+% %                     remove these two lines later, just taking out the pole
+% %                     adjustment functionality to test
+% %                     shapePnts = [shapePnts; pnts'];
+% %                     shapePntNhats = [shapePntNhats; repmat(nhat,numPnts,1)];
+% %                 else
+%                     shapePnts = [shapePnts; pnts'];
+%                     shapePntNhats = [shapePntNhats; repmat(nhat,numPnts,1)];
+%                 %end
+%             %end
         end       
     end
 end

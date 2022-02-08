@@ -28,6 +28,11 @@ function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_list
   
     j = 1;
     
+%     for i = 1:69
+%         limb_starts{i} = zeros(36,3);
+%         limb_ends{i} = zeros(36,3);
+%     end
+    
     while j <= length(img_list)
 
         asteroid = imread(img_list(j));
@@ -72,6 +77,7 @@ function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_list
             ylabel('Y (pixels)','FontSize',16)
             title(string(j),'FontSize',24)
             hold off
+            %disp('stop')
             
         end
         
@@ -89,17 +95,47 @@ function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_list
         rot1 = [1 0 0; 0 cosd(ang) sind(ang); 0 -sind(ang) cosd(ang)];%ang rotation about first axis
         theta_xz = 180-atan2d(sun_v3(1),sun_v3(3));
         rot2 = [cosd(theta_xz) 0 sind(theta_xz); 0 1 0; -sind(theta_xz) 0 cosd(theta_xz)]; 
-        
+        %rot3 = rotx(180);
         rot = rot2*rot1;
         
         [edge_points_bc{j}, new_rays_bc] = CFtoBF_orex(T, rot, edge_points{j}, edge_points_t{j}, edge_rays{j},edge_rays_t{j});
 
 
-        limb_starts{j} = new_rays_bc(:,1:3);
-        limb_ends{j}  = new_rays_bc(:,4:6);
-%         limb_starts{j} = new_rays_bc(:,4:6);
-%         limb_ends{j}  = new_rays_bc(:,1:3);
+%         limb_starts{j} = new_rays_bc(:,1:3);
+%         limb_ends{j}  = new_rays_bc(:,4:6);
+        limb_starts{j} = (new_rays_bc(:,1:3));%;new_rays_bc(37:72,1:3)]);
+        limb_ends{j}  = (new_rays_bc(:,4:6));%; new_rays_bc(37:72,4:6)]);
+%         limb_starts{j+69} = flip(new_rays_bc(37:72,4:6));
+%         limb_ends{j+69} = flip(new_rays_bc(37:72,1:3));
 
+%         for i = 1:18
+%             limb_starts_front(i,:) = limb_starts{j}(i,:);
+%             limb_ends_front(i,:) = limb_ends{j}(i,:);
+%             edge_points_front(i,:) = edge_points_bc{j}(i,:);
+%         end
+% 
+%         limb_starts_new = zeros(72,3);
+%         limb_ends_new = zeros(72,3);
+%         edge_points_new = zeros(72,3);
+%         
+%         for i = 1:72
+%             if i < 55
+%                 limb_starts_new(i,:) = limb_starts{j}(i+18,:);
+%                 limb_ends_new(i,:) = limb_ends{j}(i+18,:);
+%                 edge_points_new(i,:) = edge_points_bc{j}(i+18,:);
+%             else
+%                 limb_starts_new(i,:) = limb_starts_front(i-54,:);
+%                 limb_ends_new(i,:) = limb_ends_front(i-54,:);
+%                 edge_points_new(i,:) = edge_points_bc{j}(i-54,:);
+%             end
+%         end
+%         limb_starts{j} = limb_starts_new;
+%         limb_ends{j} = limb_ends_new;
+%         edge_points_bc{j} = edge_points_new;
 
         j = j+1;
     end
+    
+
+%     
+end
