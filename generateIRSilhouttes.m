@@ -33,29 +33,12 @@ for idxIm = 1:numFiles
     % compute image silhouette
     imthresh = im*1000;
     
-    imSilhoutte = zeros(size(imthresh),'uint8');
-    for ii = 1:size(imthresh,1)
-        if any(imthresh(ii,:)>0)
-            c = find(imthresh(ii,:)>0,1,'first');
-            imSilhoutte(ii,c) = uint8(1000);
-            c = find(imthresh(ii,:)>0,1,'last');
-            imSilhoutte(ii,c) = uint8(1000);
-        end
-    end
-    for ii = 1:size(imthresh,2)
-        if any(imthresh(:,ii)>0)
-            c = find(imthresh(:,ii)>0,1,'first');
-            imSilhoutte(c,ii) = uint8(1000);
-            c = find(imthresh(:,ii)>0,1,'last');
-            imSilhoutte(c,ii) = uint8(1000);
-        end
-    end
-    
+    imSilhouette = edge(imthresh,'canny');
     % set figure title
     sgtitle(['render',num2str(idxIm)])
     
     % find silhoutte
-    [c,r] = find(imSilhoutte);
+    [c,r] = find(imSilhouette);
     % optional convex hull computation
     if computeConvexHull
         DT = delaunayTriangulation(r,c);
@@ -75,7 +58,7 @@ for idxIm = 1:numFiles
     % plot image gradient
     ax2 = subplot(132);
     cla
-    imshow(imSilhoutte)
+    imshow(imSilhouette)
     colormap(gray)
     axis square
     
