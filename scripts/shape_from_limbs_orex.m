@@ -1,4 +1,4 @@
-function [shapeEndPnts, shapePnts, shapePntNhats] = shape_from_limbs_orex(limbRayStarts, limbRayEnds, longitudeSet, numPnts,stdnum,limb_only,spin_pole)
+function [shapeEndPnts, shapePnts, shapePntNhats] = shape_from_limbs_orex(limbRayStarts, limbRayEnds, bodyDists, numPnts,stdnum,limb_only,spin_pole)
 %
 
 %if limb_only = 0, then it's limb and terminator
@@ -23,8 +23,9 @@ function [shapeEndPnts, shapePnts, shapePntNhats] = shape_from_limbs_orex(limbRa
 angThresh = 1e-3; % deg
 cangThresh = cosd(angThresh);
 
-numLimbPatches = size(limbRayStarts{1},1); 
-totalLimbPatches = numLimbPatches*length(longitudeSet); 
+numImages = length(bodyDists);
+numLimbPatches = size(limbRayStarts,1); 
+totalLimbPatches = numLimbPatches*numImages; 
 
 % have to save totalLimbPatches of each output
 % Indices: organized in groups by longitude, with the first one having
@@ -42,11 +43,15 @@ shape_nhat = cell(totalLimbPatches,1); % different, just the normal for each pat
 numEndPnts = 2; % this will just return the endpoints, which I think is all i need right now
 
 skipmm = [];
-
-% Compute all the intersections between limb patches
-for ii = 1:length(longitudeSet)-1
-    
-    for jj = 1:numLimbPatches 
+%%
+% build all the limbs
+% build_limbs();
+%% Compute all the intersections between limb patches
+% outer loop for images/silhouettes
+for ii = 1:numImages-1
+    fprintf('processing % i of % i images\n',ii,numImages);
+    % outer loop for patches within each image/silhouette
+    for jj = 1:numLimbPatches
         
         if jj < numLimbPatches
             limb1 = [limbRayStarts{ii}(jj,:); limbRayStarts{ii}(jj+1,:); limbRayEnds{ii}(jj,:); limbRayEnds{ii}(jj+1,:)]'; 
@@ -54,16 +59,10 @@ for ii = 1:length(longitudeSet)-1
             limb1 = [limbRayStarts{ii}(jj,:); limbRayStarts{ii}(1,:); limbRayEnds{ii}(jj,:); limbRayEnds{ii}(1,:)]'; 
         end
         
-        for mm = ii+1:length(longitudeSet)
+        % inner loop for neighboring images/silhouettes
+        for mm = ii+1:numImages
             
-            % skip if limbs are 180 degrees apart
-%             if abs(longitudeSet(mm) - longitudeSet(ii) - pi) < pi/180
-%                 if ii == 1
-%                     skipmm = [skipmm; mm];
-%                 end
-%                 continue
-%             end
-            
+            % inner loop for patches within each image/silhouette
             for nn = 1:numLimbPatches 
                 
                 if nn < numLimbPatches
@@ -72,7 +71,18 @@ for ii = 1:length(longitudeSet)-1
 %                     limb2 = [limbRayStarts{mm}(nn,:); limbRayStarts{mm}(1,:); limbRayEnds{mm}(nn,:); limbRayEnds{mm}(1,:)]';
                 end
                 
-                [shapeEndPnts{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, shape_tInt{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, shape_uhat{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, shape_x0{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, nhat1, nhat2] = find_shape_pts_from_limb_segments(limb1, limb2, numEndPnts);
+                % find shape pnts from limb segments
+                [shapeEndPnts{(ii-1)*numLimbPatches + jj, ...
+                 (mm-1)*numLimbPatches + nn}, ...
+                 shape_tInt{(ii-1)*numLimbPatches + jj, ...
+                 (mm-1)*numLimbPatches + nn}, ...
+                 shape_uhat{(ii-1)*numLimbPatches + jj, ...
+                 (mm-1)*numLimbPatches + nn}, ...
+                 shape_x0{(ii-1)*numLimbPatches + jj, ...
+                 (mm-1)*numLimbPatches + nn}, ...
+                 nhat1, ...
+                 nhat2] = find_shape_pts_from_limb_segments(limb1, limb2, numEndPnts);
+             
                 if ii == 1
                     shape_nhat{(ii-1)*numLimbPatches + jj} = nhat1;
                     if jj == 1
@@ -133,7 +143,7 @@ rayLengths = [];
 % 
 shapePnts = zeros(0,3);
 shapePntNhats = zeros(0,3);
-for ii = 1:length(longitudeSet)
+for ii = 1:numImages
     
     for jj = 1:numLimbPatches
         
@@ -149,7 +159,7 @@ for ii = 1:length(longitudeSet)
         
         keepSegments = [0 1]; % c1 = %start, c2 = %stop; add rows if new sections;
         
-        otherViews = 1:length(longitudeSet);
+        otherViews = 1:numImages;
         otherViews(ii) = [];
         for kk = otherViews
             
@@ -254,7 +264,7 @@ histogram(rayLengths,100)
 title('Post-Trim Ray Length Distribution','FontSize', 18)
 xlabel('Ray Length (km)','FontSize', 16)
 ylabel('Count','FontSize', 16)
-for ii = 1:length(longitudeSet)
+for ii = 1:numImages
     for jj = 1:numLimbPatches
         start2end = (limbRayEnds{ii}(jj,:) - limbRayStarts{ii}(jj,:))';
         rayLength = norm(start2end);
@@ -264,7 +274,7 @@ for ii = 1:length(longitudeSet)
 
         keepSegments = [0 1]; % c1 = %start, c2 = %stop; add rows if new sections;
 
-        otherViews = 1:length(longitudeSet);
+        otherViews = 1:numImages;
         otherViews(ii) = [];
         for kk = otherViews
 
@@ -391,7 +401,7 @@ end
 
 
 
-% for ii = 1:length(longitudeSet)
+% for ii = 1:numImages
 %     for jj = 1:numLimbPatches
 %         intersectSegments = keepSegments{ii,jj};
 %         % With this discretization scheme, and only getting limbs from the
