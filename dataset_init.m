@@ -11,11 +11,11 @@
 n = 72;
 
 %camera vector in initial body frame
-C = [100,0,0];
+C = [200,0,0];
 
 %sun vector in initial body frame (equivalent to values in blender)
-S = [200,0,0];
-
+% S = [200,0,0];
+S = 200*[cosd(90),sind(90),0];
 %amount of angular change (degree) btwn images
 rotate_by = 5;
 start_angle = -5;
@@ -44,9 +44,9 @@ for x = 1:n
     sun_pos(x,:) = [-S(3)+C(3),-S(2)+C(2),-S(1)+C(1)];%sun position in camera frame
     cam_pos(x,:) = [0,0,0];%camera_position in camera frame
     %change img_name path to point towards wherever you saved your images
-    img_name(x) = '72phase_sim_bennu/bennu_automated_images/render'+string(x)+'.png';
+    img_name(x) = '90bennu_sim/bennu_automated_images/render'+string(x)+'.png';
     r(x) = C(1); %distance from body to camera
 end
 
 %change save file name to match case and path
-save('72phase_sim_bennu/bennu_72.mat','phase','CB','sun_pos','cam_pos','img_name','r');
+save('90bennu_sim/bennu_72.mat','phase','CB','sun_pos','cam_pos','img_name','r');
