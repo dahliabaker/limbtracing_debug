@@ -6,35 +6,27 @@ clear all
 clc
 tic
 %set initial values
-load_script = '10bennu_sim/bennu_72.mat';
-img_path = ["10bennu_sim/bennu_automated_images"];%;"mv_bennu/bennu_automated_images_2"];
+datasetPath = "new_datasets/0bennu_sim/";
+img_path = datasetPath+"/bennu_automated_images";%;"mv_bennu/bennu_automated_images_2"];
 fov_angle = 0.8;
 phase = 10; %phase of test case - can be an
 ext = 10; %length of ray extension
-limb = 1; %1 for include terminator, 0 for limb-only
-IR = 1;%0 if no IR data, 1 if yes
+limb = 0; %1 for include terminator, 0 for limb-only
+IR = 0;%0 if no IR data, 1 if yes
 density = 5; %number of degrees between silhouette sampled points
-body = 'bennu';
+body = 'itoka';
 if IR == 0
     IRdat = [];
     ir_list = [];
 else
-    if contains(load_script,'bennu')
-%         load('IRedgedata_bennu.mat')
-        load('ir_list_b.mat')
-        
-    elseif contains(load_script,'itokawa')
-%         load('IRedgedata_itokawa.mat')
-        load('ir_list_i.mat')
-    end
-    IRdat = 6;%irSilhoutte;
-%     load('ir_list_i.mat')
+    load('10phase_sim_itokawa/IRedgedata.mat')
+    IRdat = irSilhoutte;
+    load('ir_list_i.mat')
     ir_list = ir_imgs;
 end
     
 %%
-load(load_script);
-% addpath('scripts/');
+load(datasetPath+'bennu_72.mat');
 addpath('scripts_limbonly/');
 
 %load('rotation_sub_10.mat');
@@ -51,8 +43,7 @@ end
 %good = [20:5:75];
 good = 1:72;
 
-% [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_name(good), r(good), fov_angle,CB(:,:,good),sun_pos(good,:),phase,limb,ext,IR,IRdat,density,body,ir_list);
-[limb_starts, limb_ends, edge_points_bc] = image_to_limbs_new(img_name(good), r(good), fov_angle,CB(:,:,good),sun_pos(good,:),phase,limb,ext,IRdat,density,ir_list);
+[limb_starts, limb_ends, edge_points_bc] = image_to_limbs_orex(img_name(good), r(good), fov_angle,CB(:,:,good),sun_pos(good,:),phase,limb,ext,IR,IRdat,density,body,ir_list);
 
 %%
 figure(4)
