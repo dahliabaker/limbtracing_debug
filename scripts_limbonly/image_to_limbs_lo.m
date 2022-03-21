@@ -31,7 +31,7 @@
 %
 %
 
-function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_lo(img_list, z_list, fov_angle,CB,sun_pos,phase,ext)
+function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_lo(img_list, z_list, fov_angle,CB,sun_pos,ext)
   
     j = 1;
     
@@ -39,14 +39,14 @@ function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_lo(img_list, 
 
         asteroid = imread(img_list(j));
         asteroid = rgb2gray(asteroid); 
-        asteroid(asteroid<uint8(10)) = uint8(0);
+        asteroid(asteroid<uint8(20)) = uint8(0);
         asteroid = asteroid*1000;
           
         [trim_u, trim_v,~,~,mid_pt_u,mid_pt_v] = edge_finding_lo(asteroid);
         
         %check sign of y comp of SunB
         cam_pos = [0,0,z_list(j)]; %uncomment for regular cases
-        sunb = cam_pos - (CB(:,:,j)'*sun_pos(j,:)')';
+        sunb = CB(:,:,j)*(cam_pos + sun_pos(j,:))';
         %sunb = cam_pos(j,:) - (CB(:,:,j)'*sun_pos(j,:)')';
         if sunb(2) >= 0
             dir = 1;
@@ -54,10 +54,10 @@ function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_lo(img_list, 
             dir = -1;
         end
         
-        [edge_points{j}, edge_rays{j}, new_trim_u,new_trim_v] = edge_to_3d_lo(z_list(j), fov_angle, trim_u, trim_v,sunb,mid_pt_u,mid_pt_v,dir,ext);
+        [edge_points{j}, edge_rays{j}, new_trim_u,new_trim_v] = edge_to_3d_lo(z_list(j), fov_angle, trim_u, trim_v,sun_pos(j,:),mid_pt_u,mid_pt_v,dir,ext,j);
         %plot them one over another
        
-        if j ==0
+        if j > 0
             %ast_flip = flip(asteroid,1);
             figure(1)
             imshow(asteroid)

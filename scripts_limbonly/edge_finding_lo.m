@@ -1,7 +1,7 @@
 function [trim_u, trim_v,E_u,E_v,mid_pt_u,mid_pt_v] = edge_finding_lo(asteroid)
 
     %Find edge points
-    [ast_edge] = edge(asteroid,'canny',.3,3); 
+    [ast_edge] = edge(asteroid,'canny',.6,10); 
     %need to flip E_v to match camera orientation (flip vhat 180degrees
     %about uhat axis)
     
@@ -63,7 +63,7 @@ function [trim_u, trim_v,E_u,E_v,mid_pt_u,mid_pt_v] = edge_finding_lo(asteroid)
         angle_sorted(ii) = x;
         points_sorted(1:2,ii) = [centered_u(ind); centered_v(ind)];
     end
-        
+    points_sorted = (flip(points_sorted'))';
 %used to be points_saved, switched to points_sorted 10/8
     for i = 1:length(points_sorted(1,:))
         trim_u(i) = points_sorted(1,i);

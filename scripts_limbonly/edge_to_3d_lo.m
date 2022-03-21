@@ -1,4 +1,4 @@
-function [edge_points_woc, edge_rays, new_trim_u,new_trim_v] = edge_to_3d_lo(z, fov_angle, trim_u, trim_v,sun_v,mid_pt_u,mid_pt_v,dir,ext)
+function [edge_points_woc, edge_rays, new_trim_u,new_trim_v] = edge_to_3d_lo(z, fov_angle, trim_u, trim_v,sun_v,mid_pt_u,mid_pt_v,dir,ext,img_num)
 
 edge_points_woc = [];
 edge_points_woc_t = [];
@@ -18,18 +18,25 @@ dist_v = (trim_v.*(vert_dist/1024));
 mean_u = mean(dist_u);
 mean_v = mean(dist_v);%+dist_offset;
 %try sun_pos in body frame
-sun_v = [-sun_v(3)+z,-sun_v(2)];
+%sun_v = [-sun_v(3)+z,-sun_v(2)];
 
 %how are we defining the sun vector in this frame?
 
 %compute dot product w 2d image sunvector
 j=1;
 for i = 1:length(dist_u)
-    vec = [-dist_u(i),-dir*dist_v(i)];%+dist_offset];
+    vec = [dist_u(i),-dist_v(i)];%+dist_offset];
     sun = [sun_v(1),sun_v(2)];
     dot_p = dot(vec,sun);
-
-    if dot_p>=0
+    disp(dot_p)
+    dot_param = 0;
+%     if (img_num <15 && img_num>3) || (img_num > 40 && img_num < 50)
+%         dot_param = -15;
+%     else
+%         dot_param = 0;
+%     end
+    
+    if dot_p<=dot_param
         new_dist_u(j) = dist_u(i);
         new_dist_v(j) = dist_v(i);
 
