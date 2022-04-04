@@ -5,11 +5,11 @@
 % To go with automated blender images
 
 % image set path
-% datasetPath = "new_datasets/0bennu_sim";
-% imgPath = datasetPath + '\bennu_automated_images\';
+datasetPath = "new_datasets/90bennu_sim";body = "bennu";
+imgPath = datasetPath + '\bennu_automated_images\';
 
-datasetPath = "new_datasets/90itokawa_sim";
-imgPath = datasetPath + '\itokawa_automated_images\';
+% datasetPath = "new_datasets/90itokawa_sim";body = "itokawa";
+% imgPath = datasetPath + '\itokawa_automated_images\';
 
 %camera frame is stationary
 %but to body, camera is always rotating, as well as sun
@@ -21,15 +21,14 @@ n = 72;
 C = [100,0,0];
 
 %sun vector in initial body frame (equivalent to values in blender)
-% S = [200,0,0];
-% S = 200*[cosd(45),sind(45),0];
-S = 200*[cosd(90),sind(90),0];
+% get phase from file name
+phase = str2double(extractBetween(datasetPath,"s/",body));
+S = 500*[cosd(phase),sind(phase),0];
+
 %amount of angular change (degree) btwn images
 rotate_by = 5;
 start_angle = -5;
 
-%calculate and spit out the phase angle
-phase = acosd(dot(C,S)/(norm(C)*norm(S)));
 disp('phase angle = ')
 disp(phase)
 
