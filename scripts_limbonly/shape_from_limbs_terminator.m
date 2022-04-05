@@ -1,4 +1,10 @@
-function [shapeEndPnts, shapePnts, shapePntNhats] = shape_from_limbs_lo(limbRayStarts, limbRayEnds, longitudeSet, numPnts,limb_only)
+%new shape_from_limbs that deals with the terminator points but considers
+%the limb
+%how do I mesh these
+%term have to be different input?
+
+
+function [shapeEndPnts, shapePnts, shapePntNhats] = shape_from_limbs_terminator(limbRayStarts, limbRayEnds, longitudeSet, numPnts,sample)
 %
 
 %if limb_only = 0, then it's limb and terminator
@@ -49,7 +55,14 @@ for ii = 1:length(longitudeSet)-1
     for jj = 1:numLimbPatches 
         
         if jj < numLimbPatches
-            limb1 = [limbRayStarts{ii}(jj,:); limbRayStarts{ii}(jj+1,:); limbRayEnds{ii}(jj,:); limbRayEnds{ii}(jj+1,:)]'; 
+            
+                limb1 = [limbRayStarts{ii}(jj,1:3); limbRayStarts{ii}(jj+1,1:3); limbRayEnds{ii}(jj,1:3); limbRayEnds{ii}(jj+1,1:3)]';
+            
+                %make something else to cut down later?
+                %at least were not making rays out of the terminator data
+                %now
+                %but we still want the straight ray that will get chopped
+            
 %         elseif limb_only == 0
 %             limb1 = [limbRayStarts{ii}(jj,:); limbRayStarts{ii}(1,:); limbRayEnds{ii}(jj,:); limbRayEnds{ii}(1,:)]'; 
 %         
@@ -68,11 +81,21 @@ for ii = 1:length(longitudeSet)-1
             for nn = 1:numLimbPatches 
                 
                 if nn < numLimbPatches
-                    limb2 = [limbRayStarts{mm}(nn,:); limbRayStarts{mm}(nn+1,:); limbRayEnds{mm}(nn,:); limbRayEnds{mm}(nn+1,:)]';
+                    
+                        limb2 = [limbRayStarts{mm}(nn,1:3); limbRayStarts{mm}(nn+1,1:3); limbRayEnds{mm}(nn,1:3); limbRayEnds{mm}(nn+1,1:3)]';
+              
+                        %here is where we care about the terminators again
+                    
 %                 elseif limb_only == 0
 %                     limb2 = [limbRayStarts{mm}(nn,:); limbRayStarts{mm}(1,:); limbRayEnds{mm}(nn,:); limbRayEnds{mm}(1,:)]';
                 end
-                
+                %so now we have as many limbs 
+                %and we're calculating the intersections of limbs
+                %iteratively
+                %so when do we calculate the intersection of limbs and
+                %terminator lines?
+                %later
+                %in a different for loop
                 [shapeEndPnts{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, shape_tInt{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, shape_uhat{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, shape_x0{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, nhat1, nhat2] = find_shape_pts_from_limb_segments(limb1, limb2, numEndPnts);
                 if ii == 1
                     shape_nhat{(ii-1)*numLimbPatches + jj} = nhat1;
@@ -141,121 +164,131 @@ for ii = 1:length(longitudeSet)
 %         if (ii==2 && jj == 23) || ii==4 || ii==10 %ii == 12 && (jj == 5) % 11, 5 itokawa
 %             disp('hi')
 %         end
-        
-        start2end = (limbRayEnds{ii}(jj,:) - limbRayStarts{ii}(jj,:))';
-        rayLength = norm(start2end);
-        rayInd = (ii-1)*numLimbPatches + jj;
-        
-        
-        
-        keepSegments = [0 1]; % c1 = %start, c2 = %stop; add rows if new sections;
-        
-        otherViews = 1:length(longitudeSet);
-        otherViews(ii) = [];
-        for kk = otherViews
-            
-            % For each view, find segments which are inside this view's
-            % viewing cone
-            % Column 1 is the percent in the ray
-            % Column 2 is the normal direction compared to the ray direction
-            %  -> start with end points of the ray 
-            rayIntersections = [0 -1; 1 1];
-            
-            for mm = 1:numLimbPatches
-        
-                % Find where this patch trims the ray and its projected
-                % normal
-                pnum = (kk-1)*numLimbPatches + mm;
-                if (rayInd < pnum && ~isempty(shapeEndPnts{rayInd,pnum})) || (rayInd > pnum && ~isempty(shapeEndPnts{pnum,rayInd}))
-                    for nn = 1:2
-                        if rayInd < pnum
-                            pt = shapeEndPnts{rayInd,pnum}(:,nn);
-                        else
-                            pt = shapeEndPnts{pnum,rayInd}(:,nn);
-                        end
-                        start2pt = pt - limbRayStarts{ii}(jj,:)';
-                        s2pDist = norm(start2pt);
-                        
-                        % check to see if this point is on this ray
-                        angArg = dot(start2pt,start2end)/rayLength/s2pDist;
-                        
-                        if angArg > cangThresh
-                            % get percentage of ray
-                            pcntIn = s2pDist/rayLength;
-                            
-                            % compare percentage and normal to determine if should be
-                            % inserted into array
-                            projNormal = dot(start2end./rayLength, shape_nhat{pnum}(:,1));
-                            
-                            rayIntersections = [rayIntersections; pcntIn sign(projNormal)];
-                            
-                        end
-                        
-                    end
-                    
-                end
-                
-            end
-            
-            % Determine the segment(s) of the ray within this viewing cone
-            % Sort through the intersections and keep appropriate sets
-        
-            % Sort by pcntIn column
-            rayIntersections = sortrows(rayIntersections);
-            
-            % Throw out any 0 entries for normal directions if they exist
-            zeroNormInd = rayIntersections(:,2)==0;
-            rayIntersections(zeroNormInd,:) = [];
-            
-            % Find change in signs
-            normalChange = diff(rayIntersections(:,2));
-            includeInds = find(normalChange==2);
-            
-            % set of current segments
-            currSegs = zeros(length(includeInds),2);
-            for qq = 1:length(includeInds)
-                currSegs(qq,:) = [rayIntersections(includeInds(qq),1), rayIntersections(includeInds(qq)+1,1)];
-            end
-            
-            % take the intersection of this set of segments with the
-            % running set
-            intersectSegments = zeros(0,2);
-            for mm = 1:size(keepSegments,1)
-                for nn = 1:size(currSegs,1)
-                    % Keep the intersection of the arcs that intersects both patches
-                    t_intersect = [max([keepSegments(mm,1) currSegs(nn,1)]) min([keepSegments(mm,2) currSegs(nn,2)])];
-                    
-                    if t_intersect(1) <= t_intersect(2)
-                        intersectSegments = [intersectSegments; t_intersect(1), t_intersect(2)];
-                    end
-                end
-            end
-            
-            keepSegments = intersectSegments;
-            
-        end
-        
-        
-        if isempty(keepSegments) || (keepSegments(1,1) == 0 && keepSegments(1,2) == 1)
-            %fprintf('Threw out untrimmed ray index %d (long %d, az %d)\n',rayInd,ii,jj)
-            keepSegments = zeros(0,2);
-        end
+        if limbRayStarts{ii}(jj,7) == 0
+            start2end = (limbRayEnds{ii}(jj,1:3) - limbRayStarts{ii}(jj,1:3))';
+            rayLength = norm(start2end);
+            rayInd = (ii-1)*numLimbPatches + jj;
 
-            
-        for kk = 1:size(keepSegments,1)
-            pntPcnts = linspace(keepSegments(kk,1),keepSegments(kk,2),numPnts);
-            pnts = limbRayStarts{ii}(jj,:)' + start2end.*pntPcnts;
-            shapePnts = [shapePnts; pnts'];
-            nh1 = shape_nhat{rayInd}(:,1);
-            if jj == 1
-                nh2 = shape_nhat{ii*numLimbPatches}(:,1);
-            else
-                nh2 = shape_nhat{rayInd-1}(:,1);
+
+
+            keepSegments = [0 1]; % c1 = %start, c2 = %stop; add rows if new sections;
+
+            otherViews = 1:length(longitudeSet);
+            otherViews(ii) = [];
+            for kk = otherViews
+
+                % For each view, find segments which are inside this view's
+                % viewing cone
+                % Column 1 is the percent in the ray
+                % Column 2 is the normal direction compared to the ray direction
+                %  -> start with end points of the ray 
+                rayIntersections = [0 -1; 1 1];
+
+                for mm = 1:numLimbPatches
+
+                    % Find where this patch trims the ray and its projected
+                    % normal
+                    pnum = (kk-1)*numLimbPatches + mm;
+                    if (rayInd < pnum && ~isempty(shapeEndPnts{rayInd,pnum})) || (rayInd > pnum && ~isempty(shapeEndPnts{pnum,rayInd}))
+                        for nn = 1:2
+                            if rayInd < pnum
+                                pt = shapeEndPnts{rayInd,pnum}(:,nn);
+                            else
+                                pt = shapeEndPnts{pnum,rayInd}(:,nn);
+                            end
+                            start2pt = pt - limbRayStarts{ii}(jj,1:3)';
+                            s2pDist = norm(start2pt);
+
+                            % check to see if this point is on this ray
+                            angArg = dot(start2pt,start2end)/rayLength/s2pDist;
+
+                            if angArg > cangThresh
+                                % get percentage of ray
+                                pcntIn = s2pDist/rayLength;
+
+                                % compare percentage and normal to determine if should be
+                                % inserted into array
+                                projNormal = dot(start2end./rayLength, shape_nhat{pnum}(:,1));
+
+                                rayIntersections = [rayIntersections; pcntIn sign(projNormal)];
+
+                            end
+
+                        end
+
+                    end
+
+                end
+
+                % Determine the segment(s) of the ray within this viewing cone
+                % Sort through the intersections and keep appropriate sets
+
+                % Sort by pcntIn column
+                rayIntersections = sortrows(rayIntersections);
+
+                % Throw out any 0 entries for normal directions if they exist
+                zeroNormInd = rayIntersections(:,2)==0;
+                rayIntersections(zeroNormInd,:) = [];
+
+                % Find change in signs
+                normalChange = diff(rayIntersections(:,2));
+                includeInds = find(normalChange==2);
+
+                % set of current segments
+                currSegs = zeros(length(includeInds),2);
+                for qq = 1:length(includeInds)
+                    currSegs(qq,:) = [rayIntersections(includeInds(qq),1), rayIntersections(includeInds(qq)+1,1)];
+                end
+
+                % take the intersection of this set of segments with the
+                % running set
+                intersectSegments = zeros(0,2);
+                for mm = 1:size(keepSegments,1)
+                    for nn = 1:size(currSegs,1)
+                        % Keep the intersection of the arcs that intersects both patches
+                        t_intersect = [max([keepSegments(mm,1) currSegs(nn,1)]) min([keepSegments(mm,2) currSegs(nn,2)])];
+
+                        if t_intersect(1) <= t_intersect(2)
+                            intersectSegments = [intersectSegments; t_intersect(1), t_intersect(2)];
+                        end
+                    end
+                end
+
+                keepSegments = intersectSegments;
+
             end
-            nhat = (nh1'+nh2')./2;
-            nhat = nhat./norm(nhat);
-            shapePntNhats = [shapePntNhats; repmat(nhat,numPnts,1)];
-        end       
+
+
+            if isempty(keepSegments) || (keepSegments(1,1) == 0 && keepSegments(1,2) == 1)
+                %fprintf('Threw out untrimmed ray index %d (long %d, az %d)\n',rayInd,ii,jj)
+                keepSegments = zeros(0,2);
+            end
+
+
+            for kk = 1:size(keepSegments,1)
+
+
+                    pntPcnts = linspace(keepSegments(kk,1),keepSegments(kk,2),numPnts);
+                    pnts = limbRayStarts{ii}(jj,1:3)' + start2end.*pntPcnts;
+                    shapePnts = [shapePnts; pnts'];
+                    nh1 = shape_nhat{rayInd}(:,1);
+                    if jj == 1
+                        nh2 = shape_nhat{ii*numLimbPatches}(:,1);
+                    else
+                        nh2 = shape_nhat{rayInd-1}(:,1);
+                    end
+                    nhat = (nh1'+nh2')./2;
+                    nhat = nhat./norm(nhat);
+                    shapePntNhats = [shapePntNhats; repmat(nhat,numPnts,1)];
+
+            end
+        else
+            %this is what we want to do if we are considering a terminator
+            %ray
+            
+            %we have the intersections calculated. not sure how we want to
+            %use them yet
+            
     end
 end
 
@@ -446,4 +479,38 @@ end
 %     fprintf(fid,'%f %f %f %f %f %f\n',shapePnts(ii,1),shapePnts(ii,2),shapePnts(ii,3), shapePntNhats(ii,1), shapePntNhats(ii,2), shapePntNhats(ii,3));
 % end
 % fclose(fid)
+
+
+%theoretical terminator code
+
+
+
+
+
+[shapePntsterm,shapePntNhatterm] = terminator(limbRayStarts,limbRayEnds,img)
+
+
+%terminator line equation
+%iterate?
+ 
+for ii = 1:img
+    for jj = 1:numpnts
+        
+        
+    
+    
+    end
+end
+
+
+
+
+
+
+
+
+
+
+
+end
                 
