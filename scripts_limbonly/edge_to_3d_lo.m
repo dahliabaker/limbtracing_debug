@@ -26,9 +26,9 @@ mean_v = mean(dist_v);%+dist_offset;
 j=1;
 for i = 1:length(dist_u)
     vec = [dist_u(i),-dist_v(i)];%+dist_offset];
-    sun = [sun_v(1),sun_v(2)];
+    sun = ([sun_v(1),sun_v(2)]);
     dot_p = dot(vec,sun);
-    disp(dot_p)
+%     disp(dot_p)
     dot_param = 0;
 %     if (img_num <15 && img_num>3) || (img_num > 40 && img_num < 50)
 %         dot_param = -15;

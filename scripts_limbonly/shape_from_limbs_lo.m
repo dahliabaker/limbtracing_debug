@@ -45,7 +45,7 @@ skipmm = [];
 
 % Compute all the intersections between limb patches
 for ii = 1:length(longitudeSet)-1
-    
+    disp(ii)
     for jj = 1:numLimbPatches 
         
         if jj < numLimbPatches
@@ -135,7 +135,7 @@ end
 shapePnts = zeros(0,3);
 shapePntNhats = zeros(0,3);
 for ii = 1:length(longitudeSet)
-    
+    disp(ii)
     for jj = 1:numLimbPatches
         
 %         if (ii==2 && jj == 23) || ii==4 || ii==10 %ii == 12 && (jj == 5) % 11, 5 itokawa

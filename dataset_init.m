@@ -5,7 +5,7 @@
 % To go with automated blender images
 
 % image set path
-datasetPath = "new_datasets/90bennu_sim";body = "bennu";
+datasetPath = "new_datasets/44bennu_sim";body = "bennu";
 imgPath = datasetPath + '\bennu_automated_images\';
 
 % datasetPath = "new_datasets/90itokawa_sim";body = "itokawa";

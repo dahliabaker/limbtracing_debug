@@ -6,11 +6,11 @@ close all
 clc
 tic
 %set initial values
-datasetPath = "new_datasets/90bennu_sim/";img_path = datasetPath+"/bennu_automated_images";body = "bennu";
+datasetPath = "new_datasets/45bennu_sim/";img_path = datasetPath+"/bennu_automated_images";body = "bennu";
 % datasetPath = "new_datasets/45itokawa_sim/";img_path = datasetPath+"/itokawa_automated_images";body = "itokawa";
 fov_angle = 0.8;
-ext = 1; %length of ray extension
-limb = 0; %1 for include terminator, 0 for limb-only
+ext = .5; %length of ray extension
+limbOnly = 0; %0 for include terminator, 1 for limb-only
 IR = 0;%0 if no IR data, 1 if yes
 density = 5; %number of degrees between silhouette sampled points
 
@@ -33,9 +33,8 @@ addpath('scripts_limbonly/');
 for i = 1:length(img_path)
     addpath(img_path(i));   
 end
-
-% [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_lo(img_name(good), r(good), fov_angle,CB(:,:,good),sun_pos(good,:),phase,ext);
-[limb_starts, limb_ends, edge_points_bc] = image_to_limbs_lo(img_name,ir_imgs, r, fov_angle,CB,sun_pos,ext);
+% [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_lo(img_name,ir_imgs, r, fov_angle,CB,sun_pos,ext);
+[limb_starts, limb_ends, edge_points_bc] = image_to_limbs_term(img_name, r, fov_angle,CB,sun_pos,ext);
 %% plot raw pixels and rays
 figure(4),clf
 hold on
@@ -47,24 +46,42 @@ color = [color, color, color, color, color, color, color, color, color, color, c
 vert = zeros(0,3);
 for j = 1:length(r)
     hold on
-%     %uncomment below to also plot ray lines with the shape points
-%     for i = 1:10:length(limb_starts{j})
+%     % plot limb rays
+%     for i = 1:(length(limb_starts{j})/2)
+%         line([limb_starts{j}(i,1) limb_ends{j}(i,1)], [limb_starts{j}(i,2) limb_ends{j}(i,2)],[limb_starts{j}(i,3) limb_ends{j}(i,3)],'Color','g','LineWidth',1);
+%     end
+    % plot limb points
+    scatter3(edge_points_bc{j}(1:end/2,1),edge_points_bc{j}(1:end/2,2),edge_points_bc{j}(1:end/2,3),'filled','g')
+%     plot3(edge_points_bc{j}(1:end/2,1),edge_points_bc{j}(1:end/2,2),edge_points_bc{j}(1:end/2,3),'g')
+%     % plot term rays
+%     for i = (length(limb_starts{j})/2+1):length(limb_starts{j})
 %         line([limb_starts{j}(i,1) limb_ends{j}(i,1)], [limb_starts{j}(i,2) limb_ends{j}(i,2)],[limb_starts{j}(i,3) limb_ends{j}(i,3)],'Color', [1,0,0,0.2],'LineWidth',1);
 %     end
-    scatter3(edge_points_bc{j}(:,1),edge_points_bc{j}(:,2),edge_points_bc{j}(:,3),'filled')
+    % plot term points
+%     scatter3(edge_points_bc{j}((end/2+1):end,1),edge_points_bc{j}((end/2+1):end,2),edge_points_bc{j}((end/2+1):end,3),'filled','r')
+%     plot3(edge_points_bc{j}((end/2+1):end,1),edge_points_bc{j}((end/2+1):end,2),edge_points_bc{j}((end/2+1):end,3))
     vert = [vert;(edge_points_bc{j})];
     drawnow;
     %disp(j)
-    hold off    
-     
+    hold off     
 end
+
 axis('equal')
 view(45,45)
 
-%%
-[~, shapePnts, shapePntNhats] = shape_from_limbs_lo(limb_starts, limb_ends, r, 10,1);
+%% get shape model points from rays
+% set up parallel pool
+gcp();
+
+% get shape points
+if limbOnly == 0
+    shapePnts = shape_from_limb_and_term(limb_starts,limb_ends);
+else
+    shapePnts = shape_from_limbPatches(limb_starts,limb_ends);
+end
 toc
-%plots the shapePnt results of shape_from_limbs
+
+%plots raw shape point results
 ptCloud = pointCloud(shapePnts,'Normal',shapePntNhats);
 figure(6)
 pcshow(ptCloud)
@@ -74,7 +91,7 @@ xlabel('X Axis')
 ylabel('Y Axis')
 zlabel('Z Axis')
 
-%% remove outliers
+%% denoise the model
 %downsample
 ptCloud_downsample = pcdownsample(ptCloud,'gridAverage',0.001);
 
@@ -89,15 +106,14 @@ zlabel('Z Axis')
 disp('Outliers: ')
 disp(length(outlierIndices))
 
-%% 
+%% generate 
 p = [ptCloud2.Location(:,1), ptCloud2.Location(:,2), ptCloud2.Location(:,3)];
-% p = [pnts(:,1),pnts(:,2),pnts(:,3)];
-[t,tnorm]=MyRobustCrust(p);
+t = boundary(p(:,1),p(:,2),p(:,3));  
 
 figure()
 title('Output Triangulation','fontsize',14)
 axis equal
-trisurf(t,p(:,1),p(:,2),p(:,3),'facecolor','c','edgecolor','b');%'facecolor',[0.0 0.0 0.1,0.1],'edgecolor',[0.5 0.5 0.5 0.1]);%plot della superficie trattata
+h = trisurf(t,p(:,1),p(:,2),p(:,3),'facecolor','c','edgecolor','b');
 view(3);
 axis('equal')
 xlabel('X Axis')
@@ -105,5 +121,4 @@ ylabel('Y Axis')
 zlabel('Z Axis')
 
 %% save shape model to PLY file
-h = trisurf(t,p(:,1),p(:,2),p(:,3),'facecolor','c','edgecolor','b');axis equal
 plywrite(datasetPath+body+"_model.ply",h.Faces,h.Vertices)

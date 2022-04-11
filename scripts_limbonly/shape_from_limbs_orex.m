@@ -45,7 +45,7 @@ skipmm = [];
 
 % Compute all the intersections between limb patches
 for ii = 1:length(longitudeSet)-1
-    
+    disp(ii)
     for jj = 1:numLimbPatches 
         
         if jj < numLimbPatches
