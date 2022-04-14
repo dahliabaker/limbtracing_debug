@@ -1,4 +1,4 @@
-function [shapeEndPnts, shapePnts, shapePntNhats] = shape_from_limbs_lo(limbRayStarts, limbRayEnds, longitudeSet, numPnts,limb_only)
+function [shapeEndPnts, shapePnts, shapePntNhats] = shape_from_limbs_lo(limbRayStarts, limbRayEnds, longitudeSet, numPnts)
 %
 
 %if limb_only = 0, then it's limb and terminator
@@ -34,9 +34,9 @@ totalLimbPatches = numLimbPatches*length(longitudeSet);
 % Just doing the 2D way for now..   
 
 shapeEndPnts = cell(totalLimbPatches,totalLimbPatches); %(totalLimbPatches*(totalLimbPatches-1))/2,1);
-shape_tInt = cell(totalLimbPatches,totalLimbPatches);
-shape_uhat = cell(totalLimbPatches,totalLimbPatches);
-shape_x0 = cell(totalLimbPatches,totalLimbPatches);
+% shape_tInt = cell(totalLimbPatches,totalLimbPatches);
+% shape_uhat = cell(totalLimbPatches,totalLimbPatches);
+% shape_x0 = cell(totalLimbPatches,totalLimbPatches);
 shape_nhat = cell(totalLimbPatches,1); % different, just the normal for each patch
 
 numEndPnts = 2; % this will just return the endpoints, which I think is all i need right now
@@ -73,7 +73,8 @@ for ii = 1:length(longitudeSet)-1
 %                     limb2 = [limbRayStarts{mm}(nn,:); limbRayStarts{mm}(1,:); limbRayEnds{mm}(nn,:); limbRayEnds{mm}(1,:)]';
                 end
                 
-                [shapeEndPnts{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, shape_tInt{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, shape_uhat{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, shape_x0{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, nhat1, nhat2] = find_shape_pts_from_limb_segments(limb1, limb2, numEndPnts);
+%                 [shapeEndPnts{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, shape_tInt{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, shape_uhat{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, shape_x0{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, nhat1, nhat2] = find_shape_pts_from_limb_segments(limb1, limb2, numEndPnts);
+                [shapeEndPnts{(ii-1)*numLimbPatches + jj,(mm-1)*numLimbPatches + nn}, ~, ~, ~, nhat1, nhat2] = find_shape_pts_from_limb_segments(limb1, limb2, numEndPnts);
                 if ii == 1
                     shape_nhat{(ii-1)*numLimbPatches + jj} = nhat1;
                     if jj == 1
