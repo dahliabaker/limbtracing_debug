@@ -5,72 +5,31 @@ numLimbRays = length(limb_starts{1});
 numTermRays = length(termRays_starts{1});
 ax = gca;
 %% construct limb patches between pair of neighboring limb rays (along same image)
-imgPatch = cell(numImages,numLimbRays-1);
+imgPatch = cell(numImages,numLimbRays-2);
 for iImg = 1:numImages
-    
-    for iPnt = 1:numLimbRays-1
+    delete(ax.Children(1:end-144))
+    for iPnt = 1:numLimbRays-2
         
         % patch is defined by 4 vertices
         imgPatch{iImg,iPnt} = [limb_starts{iImg}(iPnt,1:3);
                                limb_ends{iImg}(iPnt,1:3);
                                limb_ends{iImg}(iPnt+1,1:3);
                                limb_starts{iImg}(iPnt+1,1:3)]';
+        
+        patch('XData',imgPatch{iImg,iPnt}(1,:),...
+              'YData',imgPatch{iImg,iPnt}(2,:),...
+              'ZData',imgPatch{iImg,iPnt}(3,:),...
+              'FaceColor','r','FaceAlpha',.1,'LineWidth',1)
+        
     end
     
+    drawnow
+    
 end
-
-% pretrim patches against each other:
-for ii = 1:size(imgPatch,1)
-    for jj = 1:size(imgPatch,2)
-        patch1 = imgPatch{ii,jj};
-%         patch('XData',patch1(1,:),...
-%               'YData',patch1(2,:),...
-%               'ZData',patch1(3,:),...
-%               'FaceColor','b','FaceAlpha',.7,'LineWidth',1)
-          
-        % only trim current patch against immediate neighbors
-%         if ii == 1
-%             kk = [size(imgPatch,1),2];
-%         elseif ii == size(imgPatch,1)
-%             kk = [1,size(imgPatch,1)-1];
-%         else
-%             kk = ii+[-1,1];
-%         end
-        kk = 1:numImages;kk(ii) = [];
-        
-        intPatch = [];
-        for k = kk
-            for nn = 1:size(imgPatch,2)
-                patch2 = imgPatch{k,nn};
-%                 patch('XData',patch2(1,:),...
-%                       'YData',patch2(2,:),...
-%                       'ZData',patch2(3,:),...
-%                       'FaceColor','r','FaceAlpha',.1,'LineWidth',1)
-                [intLines_temp] = find_shape_pts_from_limb_segments(patch1(:,[1,2,4,3]),...
-                                                                            patch2(:,[1,2,4,3]),...
-                                                                            2);
-                if ~isempty(intLines_temp)
-
-%                     plot3(intLines_temp(1,:),intLines_temp(2,:),intLines_temp(3,:),'*g')
-                end
-                intPatch = [intPatch,intLines_temp];
-            end
-        end
-        if ~isnan(norm(intPatch))
-            intPatchU = uniquetol(intPatch','ByRows',true)';
-%             plot(alphaShape(intPatch'));
-            patch('XData',intPatchU(1,:),...
-                  'YData',intPatchU(2,:),...
-                  'ZData',intPatchU(3,:),...
-                  'FaceColor','r','FaceAlpha',.7,'LineWidth',1)
-        end
-    end
-end
-
 %% for each terminator ray, compute intersection point with all patches
 shapePnts_fromTerm = cell(numImages,numTermRays);
-% ax = gca;
-for iImg = 50:numImages
+ax = gca;
+parfor iImg = 1:numImages
     disp(iImg)
     for iPntT = 1:numTermRays
 
@@ -81,9 +40,9 @@ for iImg = 50:numImages
 %             delete(tRay)
 %         end
 %         tRay = plot3(termRay(1,:),termRay(2,:),termRay(3,:),'Color','k','Marker','*','LineStyle','-.','LineWidth',2);
-        drawnow
+%         drawnow
         % loop through limb patches and compute intersection with current terminator ray
-        bestPnt = nan(3,1); bestDist = Inf;
+        bestPnt = nan(3,1); bestDist = Inf;bestPatch_idx = [1,1];
         for ii = 1:size(imgPatch,1)
             
             % skip iteration if limb image set is same as terminator image set
@@ -94,26 +53,25 @@ for iImg = 50:numImages
                 
                 % compute intersection between terminator ray and limb patch
                 [intPnt,intDist] = line_patch_intersection(termRay,imgPatch{ii,jj});
-%                 p(idx) = patch('XData',imgPatch{ii,jj}(1,:),...
-%                     'YData',imgPatch{ii,jj}(2,:),...
-%                     'ZData',imgPatch{ii,jj}(3,:),...
-%                     'FaceColor','r','FaceAlpha',.1,'LineWidth',1);idx = idx+1;drawnow
                 if ~isempty(intDist)
                     % check if the current distance is less than minimum distance
                     if intDist < bestDist
                         bestPnt = intPnt;
                         bestDist = intDist;
-%                         if exist('bestP','var')
-%                             delete(bestP)
-%                         end
-                        bestP = plot3(bestPnt(1),bestPnt(2),bestPnt(3),'sr','MarkerFaceColor','r');drawnow
+                        bestPatch_idx = [ii,jj];
                     end
                     
                 end
                 
             end
         end
-%         plot3(bestPnt(1),bestPnt(2),bestPnt(3),'sr','MarkerFaceColor','r');drawnow
+%         delete(ax.Children(1:end-144))
+%         plot3(bestPnt(1),bestPnt(2),bestPnt(3),'sg','MarkerFaceColor','g');
+%         patch('XData',imgPatch{bestPatch_idx(1),bestPatch_idx(2)}(1,:),...
+%               'YData',imgPatch{bestPatch_idx(1),bestPatch_idx(2)}(2,:),...
+%               'ZData',imgPatch{bestPatch_idx(1),bestPatch_idx(2)}(3,:),...
+%               'FaceColor','r','FaceAlpha',.1,'LineWidth',1),drawnow
+          
         % save point with the minimum distance as the shape point
         shapePnts_fromTerm{iImg,iPntT} = bestPnt(:)';
         

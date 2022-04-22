@@ -51,11 +51,12 @@ function [limb_starts, ...
     
     figure(1),clf
     ax = subplot(122); hold on
-    load('./../PhD_work/surfaceGeneration/Data/itokawa200kData.mat','obj')
+%     load('./../PhD_work/surfaceGeneration/Data/itokawa200kData.mat','obj')
+    load('./../PhD_work/surfaceGeneration/Data/bennu200kData.mat','obj')
     p = patch('Faces',obj.f.v,'Vertices',obj.v);axis(ax,'equal')
     p.FaceColor = 'w';
     p.EdgeColor = [.01,.01,.01];
-    j = 40;
+    j = 1;
     while j <= length(img_list)
 
         asteroid = imread(img_list(j));
@@ -75,6 +76,12 @@ function [limb_starts, ...
             dir = -1;
         end
         
+        % load ir images 
+        if contains(img_list,'itokawa')
+            load('ir_list_i.mat','ir_imgs')
+        else
+            load('ir_list_b.mat','ir_imgs')
+        end
         [edge_points, ...
          edge_points_t, ...
          edge_rays, ...
@@ -89,7 +96,7 @@ function [limb_starts, ...
                                        sun_pos(j,:), ...
                                        mid_pt_u, ...
                                        mid_pt_v, ...
-                                       dir,ext,j);
+                                       dir,ext,j,ir_imgs);
         %plot them one over another
         if j > 0
             %ast_flip = flip(asteroid,1);

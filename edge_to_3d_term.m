@@ -1,4 +1,4 @@
-function [edge_points_woc, edge_points_woc_t, edge_rays, edge_rays_t, new_trim_u,new_trim_v,new_term_u,new_term_v] = edge_to_3d_lo(z, fov_angle, trim_u, trim_v,sun_v,mid_pt_u,mid_pt_v,dir,ext,img_num)
+function [edge_points_woc, edge_points_woc_t, edge_rays, edge_rays_t, new_trim_u,new_trim_v,new_term_u,new_term_v] = edge_to_3d_term(z, fov_angle, trim_u, trim_v,sun_v,mid_pt_u,mid_pt_v,dir,ext,img_num,ir_imgs)
 
 edge_points_woc = [];
 edge_points_woc_t = [];
@@ -26,6 +26,31 @@ mean_v = mean(dist_v);%+dist_offset;
 %compute dot product w 2d image sunvector
 j=1;
 k=1;
+%%
+% ax = subplot(121);cla
+
+ir_im = rgb2gray(imread(ir_imgs(img_num)));
+ir_im(ir_im<uint8(2)) = 0;
+ir_edge = edge(ir_im*1000,'canny',.6,10);
+% imshow(ir_edge), hold on
+[trim_v_ir,trim_u_ir] = find(ir_edge);
+% scatter(trim_u_ir,trim_v_ir,'filled','r'), hold on
+% scatter(trim_u+mid_pt_u,trim_v+mid_pt_v,'filled','g'), hold on,axis equal
+pxTol = 10;
+% for ii = 1:length(trim_u)
+%    
+%     pxInd = [trim_u(ii),trim_v(ii)]+[mid_pt_u,mid_pt_v];
+%     
+%     % compare against ir pixels
+%     pxDiff = vecnorm(pxInd-[trim_v_ir,trim_u_ir],2,2);
+%     if min(pxDiff) < pxTol% if close to ir pixel, then ID as limb
+%         scatter(pxInd(1),pxInd(2),'filled','b')
+%     else
+%         scatter(pxInd(1),pxInd(2),'filled','w')
+%     end
+%     drawnow
+% end
+
 for i = 1:length(dist_u)
     vec = [dist_u(i),-dist_v(i)];%+dist_offset];
     sun = [sun_v(1),sun_v(2)];
@@ -36,33 +61,55 @@ for i = 1:length(dist_u)
 %     else
 %         dot_param = 0;
 %     end
+%     
+%     if dot_p<=dot_param
+%         new_dist_u(j) = dist_u(i);
+%         new_dist_v(j) = dist_v(i);
+% 
+%         new_trim_u(j) = trim_u(i)+mid_pt_u;
+%         new_trim_v(j) = (1*trim_v(i))+mid_pt_v;
+%         j = j+1;
+%        
+%     else
+%         term_dist_u(k) = dist_u(i);
+%         term_dist_v(k) = dist_v(i);
+% 
+%         new_term_u(k) = trim_u(i)+mid_pt_u;
+%         new_term_v(k) = (1*trim_v(i))+mid_pt_v;
+%         k = k+1;
+%     end
+    pxInd = [trim_u(i),trim_v(i)]+[mid_pt_u,mid_pt_v]; 
     
-    if dot_p<=dot_param
+    % compare against ir pixels
+    pxDiff = vecnorm(pxInd-[trim_u_ir,trim_v_ir],2,2);
+    if min(pxDiff) < pxTol% if close to ir pixel, then ID as limb
         new_dist_u(j) = dist_u(i);
         new_dist_v(j) = dist_v(i);
 
         new_trim_u(j) = trim_u(i)+mid_pt_u;
         new_trim_v(j) = (1*trim_v(i))+mid_pt_v;
         j = j+1;
-       
-    else
+%         scatter(trim_u(i)+mid_pt_u,trim_v(i)+mid_pt_v,'filled','k')
+    else% else, ID as terminator
         term_dist_u(k) = dist_u(i);
         term_dist_v(k) = dist_v(i);
 
         new_term_u(k) = trim_u(i)+mid_pt_u;
         new_term_v(k) = (1*trim_v(i))+mid_pt_v;
         k = k+1;
+%         scatter(trim_u(i)+mid_pt_u,trim_v(i)+mid_pt_v,'filled','k')
     end
+    
 end
 
 half_len = ext;
 
 if j > 1
-    max = 25;
+    maxPts = 25;
     %make sample indices
-    samp = 1:(length(new_dist_u)/max):length(new_dist_u);
+    samp = 1:(length(new_dist_u)/maxPts):length(new_dist_u);
     samp = round(samp);
-    for i = 1:max
+    for i = 1:maxPts
         new_u(i) = new_dist_u(samp(i));
         new_v(i) = new_dist_v(samp(i));
     end
@@ -90,11 +137,11 @@ if j > 1
     %
 end
 if k > 1
-    max = 25;
+    maxPts = 25;
     %make sample indices
-    samp = 1:(length(term_dist_u)/max):length(term_dist_u);
+    samp = 1:(length(term_dist_u)/maxPts):length(term_dist_u);
     samp = round(samp);
-    for i = 1:max
+    for i = 1:maxPts
         term_u_2(i) = term_dist_u(samp(i));
         term_v_2(i) = term_dist_v(samp(i));
     end
