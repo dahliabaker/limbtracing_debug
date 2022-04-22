@@ -51,20 +51,33 @@ function [limb_starts, ...
     
     figure(1),clf
     ax = subplot(122); hold on
-%     load('./../PhD_work/surfaceGeneration/Data/itokawa200kData.mat','obj')
-    load('./../PhD_work/surfaceGeneration/Data/bennu200kData.mat','obj')
+    % load ir images and reference shape model
+    if contains(img_list(1),'itokawa')
+        load('ir_list_i.mat','ir_imgs')
+        load('./../PhD_work/surfaceGeneration/Data/itokawa200kData.mat','obj')
+    else
+        load('ir_list_b.mat','ir_imgs')
+        load('./../PhD_work/surfaceGeneration/Data/bennu200kData.mat','obj')
+    end
     p = patch('Faces',obj.f.v,'Vertices',obj.v);axis(ax,'equal')
     p.FaceColor = 'w';
     p.EdgeColor = [.01,.01,.01];
     j = 1;
     while j <= length(img_list)
 
-        asteroid = imread(img_list(j));
-        asteroid = rgb2gray(asteroid); 
-        asteroid(asteroid<uint8(20)) = uint8(0);
+        im_raw = imread(img_list(j));
+        asteroid = rgb2gray(im_raw); 
+%         asteroid(asteroid<uint8(20)) = uint8(0);
         asteroid = asteroid*1000;
           
         [trim_u, trim_v,~,~,mid_pt_u,mid_pt_v] = edge_finding_lo(asteroid);
+        
+        % do edge finding on ir image
+        ir_image_raw = imread(ir_imgs(j));
+        ir_image = rgb2gray(ir_image_raw);
+%         ir_image(ir_image<uint8(2)) = 0;
+        ir_image = ir_image*1000;
+        [trim_u_ir, trim_v_ir,~,~,~,~] = edge_finding_lo(ir_image);
         
         %check sign of y comp of SunB
         cam_pos = [0,0,z_list(j)]; %uncomment for regular cases
@@ -76,12 +89,6 @@ function [limb_starts, ...
             dir = -1;
         end
         
-        % load ir images 
-        if contains(img_list,'itokawa')
-            load('ir_list_i.mat','ir_imgs')
-        else
-            load('ir_list_b.mat','ir_imgs')
-        end
         [edge_points, ...
          edge_points_t, ...
          edge_rays, ...
@@ -93,23 +100,30 @@ function [limb_starts, ...
                                        fov_angle, ...
                                        trim_u, ...
                                        trim_v, ...
+                                       trim_u_ir, ...
+                                       trim_v_ir, ...
                                        sun_pos(j,:), ...
                                        mid_pt_u, ...
                                        mid_pt_v, ...
-                                       dir,ext,j,ir_imgs);
+                                       dir,ext,j);
         %plot them one over another
         if j > 0
             %ast_flip = flip(asteroid,1);
 %             figure(1)
             subplot(121)
 %             imshow(asteroid)
-            imshow(imread(img_list(j)))
+            imshow(im_raw)
             hold on
             grid on
             scatter(new_trim_u,new_trim_v,'filled','b')
             scatter(new_term_u,new_term_v,'filled','g')
             scatter(mid_pt_v,mid_pt_v,'filled','r')
-            legend({'limb','terminator','center'},'FontSize',24)
+            if exist('trim_u_ir','var')
+%                 scatter(trim_u_ir+mid_pt_u,trim_v_ir+mid_pt_v,'filled','w')
+%                 legend({'limb','terminator','center','ir limb'},'FontSize',24)
+            else
+                legend({'limb','terminator','center'},'FontSize',24)
+            end
             xlabel('X (pixels)','FontSize',16)
             ylabel('Y (pixels)','FontSize',16)
             title(string(j),'FontSize',24)
