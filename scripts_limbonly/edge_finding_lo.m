@@ -1,7 +1,7 @@
 function [trim_u, trim_v,E_u,E_v,mid_pt_u,mid_pt_v] = edge_finding_lo(asteroid)
 
     %Find edge points
-    [ast_edge] = edge(asteroid,'canny',.6,10); 
+    [ast_edge] = edge(asteroid,'canny',.5,12); 
     %need to flip E_v to match camera orientation (flip vhat 180degrees
     %about uhat axis)
     

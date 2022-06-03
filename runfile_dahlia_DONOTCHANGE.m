@@ -43,7 +43,7 @@ for j = 1:72
 end
 axis('equal')
 %%
-[shapeEndPnts,shapePnts, shapePntNhats] = shape_from_limbs_terminator(limb_ends,limb_starts,r, 10,25);
+[~,shapePnts, shapePntNhats] = shape_from_limbs_terminator(limb_ends,limb_starts,r, 10,25);
 
 %plots the shapePnt results of shape_from_limbs
 ptCloud = pointCloud(shapePnts,'Normal',shapePntNhats);

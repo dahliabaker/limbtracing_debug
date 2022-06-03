@@ -57,21 +57,21 @@ function [limb_starts, limb_ends, edge_points_bc] = image_to_limbs_lo(img_list, 
         [edge_points{j}, edge_points_t{j}, edge_rays{j}, edge_rays_t{j}, new_trim_u,new_trim_v,new_term_u,new_term_v] = edge_to_3d_term(z_list(j), fov_angle, trim_u, trim_v,sun_pos(j,:),mid_pt_u,mid_pt_v,dir,ext,j);
         %plot them one over another
        
-        if j == 0
+        if j > 0
             %ast_flip = flip(asteroid,1);
             figure(1)
             imshow(asteroid)
             hold on
             grid on
-            scatter(new_trim_u,new_trim_v,'filled','b')
-            scatter(new_term_u,new_term_v,'filled','g')
-            scatter(mid_pt_v,mid_pt_v,'filled','r')
+            scatter(new_trim_u,new_trim_v,30,'filled','m')
+            scatter(new_term_u,new_term_v,30,'filled','c')
+            scatter(mid_pt_v,mid_pt_v,75,'k','x')
             %plot lines from sun direction
             %asteroid = imcrop(asteroid);
-            legend({'limb','terminator','center'},'FontSize',24)
-            xlabel('X (pixels)','FontSize',16)
-            ylabel('Y (pixels)','FontSize',16)
-            title(string(j),'FontSize',24)
+            legend({'limb','terminator','center'},'FontSize',20)
+%             xlabel('X (pixels)','FontSize',16)
+%             ylabel('Y (pixels)','FontSize',16)
+%             title(string(j),'FontSize',24)
             hold off    
         end
         
